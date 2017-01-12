@@ -15,6 +15,7 @@
  **/
 
 import Foundation
+import Kitura
 import Query
 
 extension Part: ParameterValue {

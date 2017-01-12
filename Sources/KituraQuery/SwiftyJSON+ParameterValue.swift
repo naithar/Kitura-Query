@@ -16,6 +16,7 @@
 
 import Foundation
 import Query
+import Kitura
 import SwiftyJSON
 
 extension JSON: ParameterValue {
@@ -34,7 +35,8 @@ extension JSON: ParameterValue {
 
     public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
         get {
-            return self[keys as [JSONSubscriptType]]
+            let keys = keys.flatMap { $0.jsonKey }
+            return self[keys]
         }
     }
     
