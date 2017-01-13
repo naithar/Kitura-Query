@@ -1,5 +1,5 @@
 import SwiftyJSON
-import Query
+@_exported import Query
 import Kitura
 
 extension QueryKeyProtocol {
