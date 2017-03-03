@@ -16,22 +16,25 @@
 
 import Foundation
 import Query
+import Wrap
 import Kitura
 import SwiftyJSON
 
-//extension JSON: ParameterValue {
-//    
+extension JSON: WrapConvertible {
+//
 //    public var data: Data? {
 //        return try? self.rawData()
 //    }
 //    
-//    public var array: [Any]? {
-//        return self.arrayObject
-//    }
-//    
-//    public var dictionary: [String : Any]? {
-//        return self.dictionaryObject
-//    }
+    public var array: [Any]? {
+        return self.arrayObject
+    }
+    
+    public var dictionary: [AnyHashable : Any]? {
+        guard let dictionary = self.dictionaryObject else { return nil }
+        return dictionary as [AnyHashable : Any]
+    }
+}
 //
 //    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
 //        get {

@@ -5,13 +5,17 @@ import SwiftyJSON
 class KituraQueryTests: XCTestCase {
     
     func testParameterValueJSON() {
-//        var json = JSON(["a", "b"]) as ParameterValue
-//        
+        
+        
+        let json = JSON(["a", "b"])
+        let wrap = Wrap.Value(json)
+        
+//
 //        XCTAssertNotNil(json.data)
-//        XCTAssertEqual(json.array as! [String], ["a", "b"])
-//        XCTAssertNil(json.dictionary)
-//        XCTAssertEqual(json[0].string, "a")
-//        
+        XCTAssertEqual(wrap.array as! [String], ["a", "b"])
+        XCTAssertNil(wrap.dictionary)
+        XCTAssertEqual(wrap[0].string, "a")
+//
 //        json = JSON(["a" : ["b" : 0]]) as ParameterValue
 //        
 //        XCTAssertNotNil(json.dictionary)
