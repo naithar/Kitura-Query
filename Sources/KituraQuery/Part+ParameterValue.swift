@@ -18,59 +18,59 @@ import Foundation
 import Kitura
 import Query
 
-extension Part: ParameterValue {
-    
-    public var object: Any {
-        return self
-    }
-    
-    /// Data representing parameter.
-    public var data: Data? {
-        return self.body.data
-    }
-    
-    /// String representing parameter.
-    public var string: String? {
-        return self.body.string
-    }
-    
-    /// Integer representing parameter.
-    public var int: Int? {
-        return self.body.int
-    }
-    
-    /// Floating-point representing parameter.
-    public var double: Double? {
-        return self.body.double
-    }
-    
-    /// Bool representing parameter.
-    public var bool: Bool? {
-        return self.body.bool
-    }
-    
-    /// Array representing parameter.
-    public var array: [Any]? {
-        return self.body.array
-    }
-    
-    /// Dictionary representing parameter.
-    public var dictionary: [String : Any]? {
-        return self.body.dictionary
-    }
-    
-    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
-        get {
-            guard keys.count > 0 else {
-                return self
-            }
-            return self.body[keys]
-        }
-    }
-    
-    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
-        get {
-            return self[keys]
-        }
-    }
-}
+//extension Part: ParameterValue {
+//    
+//    public var object: Any {
+//        return self
+//    }
+//    
+//    /// Data representing parameter.
+//    public var data: Data? {
+//        return self.body.data
+//    }
+//    
+//    /// String representing parameter.
+//    public var string: String? {
+//        return self.body.string
+//    }
+//    
+//    /// Integer representing parameter.
+//    public var int: Int? {
+//        return self.body.int
+//    }
+//    
+//    /// Floating-point representing parameter.
+//    public var double: Double? {
+//        return self.body.double
+//    }
+//    
+//    /// Bool representing parameter.
+//    public var bool: Bool? {
+//        return self.body.bool
+//    }
+//    
+//    /// Array representing parameter.
+//    public var array: [Any]? {
+//        return self.body.array
+//    }
+//    
+//    /// Dictionary representing parameter.
+//    public var dictionary: [String : Any]? {
+//        return self.body.dictionary
+//    }
+//    
+//    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
+//        get {
+//            guard keys.count > 0 else {
+//                return self
+//            }
+//            return self.body[keys]
+//        }
+//    }
+//    
+//    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
+//        get {
+//            return self[keys]
+//        }
+//    }
+//}

@@ -19,30 +19,30 @@ import Query
 import Kitura
 import SwiftyJSON
 
-extension JSON: ParameterValue {
-    
-    public var data: Data? {
-        return try? self.rawData()
-    }
-    
-    public var array: [Any]? {
-        return self.arrayObject
-    }
-    
-    public var dictionary: [String : Any]? {
-        return self.dictionaryObject
-    }
-
-    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
-        get {
-            let keys = keys.flatMap { $0.jsonKey }
-            return self[keys]
-        }
-    }
-    
-    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
-        get {
-            return self[keys]
-        }
-    }
-}
+//extension JSON: ParameterValue {
+//    
+//    public var data: Data? {
+//        return try? self.rawData()
+//    }
+//    
+//    public var array: [Any]? {
+//        return self.arrayObject
+//    }
+//    
+//    public var dictionary: [String : Any]? {
+//        return self.dictionaryObject
+//    }
+//
+//    public subscript(keys: [QueryKeyProtocol]) -> ParameterValue {
+//        get {
+//            let keys = keys.flatMap { $0.jsonKey }
+//            return self[keys]
+//        }
+//    }
+//    
+//    public subscript(keys: QueryKeyProtocol...) -> ParameterValue {
+//        get {
+//            return self[keys]
+//        }
+//    }
+//}
