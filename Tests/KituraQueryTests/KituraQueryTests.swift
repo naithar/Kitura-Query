@@ -6,15 +6,16 @@ class KituraQueryTests: XCTestCase {
     
     func testParameterValueJSON() {
         
-        
         let json = JSON(["a", "b"])
         let wrap = Wrap.Value(json)
         
-//
-//        XCTAssertNotNil(json.data)
         XCTAssertEqual(wrap.array as! [String], ["a", "b"])
         XCTAssertNil(wrap.dictionary)
         XCTAssertEqual(wrap[0].string, "a")
+        XCTAssertTrue(wrap.isArray)
+        
+        XCTAssertNotNil(wrap.as([Any].self))
+        XCTAssertNotNil(wrap.as([String].self))
 //
 //        json = JSON(["a" : ["b" : 0]]) as ParameterValue
 //        
