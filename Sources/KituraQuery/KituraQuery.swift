@@ -3,26 +3,16 @@ import Kitura
 @_exported import Foundation.NSData
 @_exported import Query
 
-
-//extension QueryKeyProtocol {
-//    
-//    public var jsonKey: JSONSubscriptType? {
-//        return self as? JSONSubscriptType
-//    }
-//}
-
-
 enum Keys: String {
-    
-    case Query = ".Kitura-Query.UserData.Query-Key"
-    case RawBody = ".Kitura-Query.UserData.RawBody-Key"
     case Container = ".Kitura-Query.UserData.Container-Key"
 }
-//let KituraQueryUserDataKey = ".Kitura-Query.UserData.Key"
-//let KituraQueryUserDataKey = ".Kitura-Query.UserData.Key"
 
 public class Container {
     
+    public struct Body {
+        var data: Data?
+        var type: String?
+    }
     
     init(request: RouterRequest) {
         self.request = request
@@ -43,21 +33,14 @@ public class Container {
         return Query.init(percentEncodedQuery: query)
     }()
     
+    public private(set) var rawBody: Body?
+    
 //    public var body: Wrap.Value // Body ?
 }
 
 extension RouterRequest {
     
-    internal var rawBody: Data? {
-        set {
-            self.userInfo[Keys.RawBody.rawValue] = newValue
-        }
-        get {
-            return self.userInfo[Keys.RawBody.rawValue] as? Data
-        }
-    }
-    
-    public var container: Container {
+    public var wrap: Container {
         guard let container = self.userInfo[Keys.Container.rawValue] as? Container else {
             let container = Container(request: self)
             self.userInfo[Keys.Container.rawValue] = container
@@ -65,23 +48,6 @@ extension RouterRequest {
         }
         
         return container
-    }
-    
-    public var query: Query {
-        guard let query = self.userInfo[Keys.Query.rawValue] as? Query else {
-            let value: Query
-            
-            if let query = self.urlURL.query {
-                value = Query(percentEncodedQuery: query)
-            } else {
-                value = Query.null
-            }
-            
-            self.userInfo[Keys.Query.rawValue] = value
-            return value
-        }
-        
-        return query
     }
 }
 
@@ -92,11 +58,18 @@ public struct Parser: RouterMiddleware {
             return next()
         }
         
-        guard request.headers["Content-Length"] != nil else {
-            return next()
+        guard request.headers["Content-Length"] != nil,
+            var contentType = request.headers["Content-Type"] else {
+                return next()
         }
         
-        request.rawBody = try BodyParser.readBodyData(with: request)
+        if let parameterStart = contentType.range(of: ";") {
+            contentType = contentType.substring(to: parameterStart.lowerBound)
+        }
+        
+        let rawData = try BodyParser.readBodyData(with: request)
+        let body = Container.Body(data: rawData, type: contentType)
+        request.wrap.rawBody = body
         next()
     }
 }
