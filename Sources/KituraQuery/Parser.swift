@@ -44,6 +44,23 @@ class QueryParser: RawBodyParserProtocol {
 class MultipartParser: RawBodyParserProtocol {
     
     func parse(raw data: Data, type: String?) -> Wrap.Value {
+        guard let type = type,
+            let boundary = self.boundary(from: type) else { return .null }
+        
         return .null
+    }
+    
+    func boundary(from type: String) -> String? {
+        guard let boundryIndex = type.range(of: "boundary=") else { nil }
+        
+        var boundary = type
+            .substring(from: boundryIndex.upperBound)
+            .replacingOccurrences(of: "\"", with: "")
+
+        if let parameterStart = boundary.range(of: ";") {
+            boundary = boundary.substring(to: parameterStart.lowerBound)
+        }
+        
+        return boundary
     }
 }
