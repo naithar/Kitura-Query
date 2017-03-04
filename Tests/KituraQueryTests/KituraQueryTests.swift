@@ -1,8 +1,109 @@
 import XCTest
 @testable import KituraQuery
+import KituraNet
+import Kitura
 import SwiftyJSON
 
-class KituraQueryTests: XCTestCase {
+class KituraTest: XCTestCase {
+    
+    static let httpPort = 8080
+    static let httpsPort = 8443
+    
+    static private(set) var httpServer: HTTPServer? = nil
+    
+    private(set) var port = -1
+    
+    override func setUp() {
+        super.setUp()
+    }
+    
+    func performServerTest(_ router: ServerDelegate, line: Int = #line, asyncTasks: @escaping (XCTestExpectation) -> Void...) {
+        
+            self.port = KituraTest.httpPort
+            
+            doPerformServerTest(router: router, line: line, asyncTasks: asyncTasks)
+        
+    }
+    
+    func doPerformServerTest(router: ServerDelegate, line: Int, asyncTasks: [(XCTestExpectation) -> Void]) {
+        
+        guard startServer(router: router) else {
+            XCTFail("Error starting server on port \(port)")
+            return
+        }
+        
+        let requestQueue = DispatchQueue(label: "Request queue")
+        for (index, asyncTask) in asyncTasks.enumerated() {
+            let expectation = self.expectation(line: line, index: index)
+            requestQueue.async() {
+                asyncTask(expectation)
+            }
+        }
+        
+        // wait for timeout or for all created expectations to be fulfilled
+        waitForExpectations(timeout: 10) { error in
+            XCTAssertNil(error)
+        }
+    }
+    
+    private func startServer(router: ServerDelegate) -> Bool {
+        
+            if let server = KituraTest.httpServer {
+                server.delegate = router
+                return true
+            }
+        
+        let server = HTTP.createServer()
+        server.delegate = router
+        
+        do {
+            try server.listen(on: port)
+            
+                KituraTest.httpServer = server
+            
+            return true
+        } catch {
+            XCTFail("Error starting server: \(error)")
+            return false
+        }
+    }
+    
+    func stopServer() {
+        KituraTest.httpServer?.stop()
+        KituraTest.httpServer = nil
+    }
+    
+    func performRequest(_ method: String, path: String, callback: @escaping ClientRequest.Callback,
+                        headers: [String: String]? = nil, requestModifier: ((ClientRequest) -> Void)? = nil) {
+        
+        var allHeaders = [String: String]()
+        if  let headers = headers {
+            for  (headerName, headerValue) in headers {
+                allHeaders[headerName] = headerValue
+            }
+        }
+        if allHeaders["Content-Type"] == nil {
+            allHeaders["Content-Type"] = "text/plain"
+        }
+        
+        let schema = "http"
+        let options: [ClientRequest.Options] =
+            [.method(method), .schema(schema), .hostname("localhost"), .port(Int16(self.port)), .path(path),
+             .headers(allHeaders)]
+        
+        let req = HTTP.request(options, callback: callback)
+        if let requestModifier = requestModifier {
+            requestModifier(req)
+        }
+        req.end(close: true)
+    }
+    
+    func expectation(line: Int, index: Int) -> XCTestExpectation {
+        return self.expectation(description: "\(type(of: self)):\(line)[\(index)])")
+    }
+}
+
+class KituraQueryTests: KituraTest {
     
     func testParameterValueJSON() {
         
@@ -24,22 +125,38 @@ class KituraQueryTests: XCTestCase {
 //        XCTAssertEqual(json["a", "b"].int, 0)
     }
     
-//    func testQueryInRequest() {
-//        let router = Router()
-//        
-//        router.get("/strings") { request, response, next in
-//            defer {
-//                response.status(.OK)
-//                next()
-//            }
-//            
-//            XCTAssertNotNil(request.queryParameters["q"])
-//            XCTAssertNotNil(request.query["q"].string)
-//            XCTAssertEqual(request.query["q"].string, request.queryParameters["q"])
-//            
-//            response.send(request.query["q"].string ?? "")
-//        }
-//        
+    func testQueryInRequest() {
+    
+        let router = Router()
+        
+//        router.all("*", middleware: KituraQuery.Parser())
+//
+        router.get("/strings") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
+            XCTAssertNotNil(request.queryParameters["q"])
+            XCTAssertNotNil(request.wrap.query["q"].string)
+            XCTAssertEqual(request.wrap.query["q"].string, request.queryParameters["q"])
+            response.send(request.wrap.query["q"].string ?? "")
+        }
+        
+        performServerTest(router, asyncTasks: { expectation in
+            self.performRequest("get", path: "/strings?q=tra-ta-ta".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!, callback: { response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                
+                let string = try! response!.readString()
+                
+                XCTAssertNotNil(string)
+                XCTAssertEqual(string, "tra-ta-ta")
+                
+                expectation.fulfill()
+            })
+        })
+    }
+//
 //        router.get("/ints") { request, response, next in
 //            defer {
 //                response.status(.OK)
@@ -338,34 +455,38 @@ class KituraQueryTests: XCTestCase {
 //        })
 //    }
 //    
-//    func testQueriableBody() {
-//        let router = Router()
-//        
-//        router.post("*", middleware: BodyParser())
-//        
-//        router.post("/text") { request, response, next in
-//            defer {
-//                response.status(.OK)
-//                next()
-//            }
-//            
-//            guard let body = request.body else {
-//                XCTFail("body should exist")
-//                return
-//            }
-//            
-//            guard case .text(let string) = body else {
-//                XCTFail("wrong body")
-//                return
-//            }
-//            
-//            XCTAssertNotNil(body.string)
-//            XCTAssertEqual(body.string, "hello")
-//            XCTAssertEqual(body.string, string)
-//            
-//            response.send(body.string ?? "")
-//        }
-//        
+    func testQueriableBody() {
+        let router = Router()
+
+        router.post("/text") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
+            XCTAssertNotNil(request.wrap.body.string)
+            XCTAssertEqual(request.wrap.body.string, "hello")
+//            XCTAssertEqual(request.wrap.body.string, string)
+            
+            response.send(request.wrap.body.string ?? "")
+        }
+        
+        performServerTest(router, asyncTasks: { expectation in
+            self.performRequest("post", path: "/text", callback: {response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                
+                let string = try! response!.readString()
+                
+                XCTAssertNotNil(string)
+                XCTAssertEqual(string, "hello")
+                
+                expectation.fulfill()
+            }) { req in
+                req.write(from: "hello")
+            }
+        })
+    }
+//
 //        router.post("/json") { request, response, next in
 //            defer {
 //                response.status(.OK)
@@ -513,6 +634,8 @@ class KituraQueryTests: XCTestCase {
     static var allTests : [(String, (KituraQueryTests) -> () throws -> Void)] {
         return [
             ("testParameterValueJSON", testParameterValueJSON),
+            ("testQueryInRequest", testQueryInRequest),
+            ("testQueriableBody", testQueriableBody),
         ]
     }
 }
