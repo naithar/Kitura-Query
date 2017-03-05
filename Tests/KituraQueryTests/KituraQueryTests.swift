@@ -471,6 +471,53 @@ class KituraQueryTests: KituraTest {
             response.send(request.wrap.body.string ?? "")
         }
         
+        router.post("/multipart") { request, response, next in
+            defer {
+                response.status(.OK)
+                next()
+            }
+            
+//            guard let body = request.body else {
+//                XCTFail("body should exist")
+//                return
+//            }
+//            
+//            guard case .multipart(let parts) = body else {
+//                XCTFail("wrong body")
+//                return
+//            }
+//            
+//            guard let parsedBody = (body["text"].object as? Part)?.body,
+//                case .text = parsedBody else {
+//                    XCTFail("wrong part body")
+//                    return
+//            }
+            
+            XCTAssertNotNil(request.wrap.body["text"].data)
+            XCTAssertEqual(request.wrap.body["text"].data, "text default".data(using: .utf8))
+            XCTAssertNotNil(request.wrap.body["text"].string)
+            XCTAssertEqual(request.wrap.body["text"].string, "text default")
+            
+//            guard let text = parts.first,
+//                case .text(let string) = text.body else {
+//                    XCTFail()
+//                    return
+//            }
+            
+//            XCTAssertEqual(body["text"].string, string)
+            
+            XCTAssertEqual(request.wrap.body["number"].int, 10)
+            XCTAssertEqual(request.wrap.body["number"].double, 10.0)
+            
+            XCTAssertEqual(request.wrap.body["boolean"].bool, true)
+            
+            XCTAssertNil(request.wrap.body["text"].array)
+            XCTAssertNil(request.wrap.body["text"].dictionary)
+            
+            response.send(request.wrap.body["text"].string ?? "")
+        }
+
+        
         performServerTest(router, asyncTasks: { expectation in
             self.performRequest("post", path: "/text", callback: {response in
                 XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
@@ -484,7 +531,31 @@ class KituraQueryTests: KituraTest {
             }) { req in
                 req.write(from: "hello")
             }
+        }, { expectation in
+            self.performRequest("post", path: "/multipart", callback: {response in
+                XCTAssertNotNil(response, "ERROR!!! ClientRequest response object was nil")
+                
+                let string = try! response!.readString()
+                
+                XCTAssertNotNil(string)
+                XCTAssertEqual(string, "text default")
+                
+                expectation.fulfill()
+            }) {req in
+                req.headers["Content-Type"] = "multipart/form-data; boundary=---------------------------9051914041544843365972754266"
+                req.write(from: "-----------------------------9051914041544843365972754266\r\n" +
+                    "Content-Disposition: form-data; name=\"text\"\r\n\r\n" +
+                    "text default\r\n" +
+                    "-----------------------------9051914041544843365972754266\r\n" +
+                    "Content-Disposition: form-data; name=\"number\"\r\n\r\n" +
+                    "10\r\n" +
+                    "-----------------------------9051914041544843365972754266\r\n" +
+                    "Content-Disposition: form-data; name=\"boolean\"\r\n\r\n" +
+                    "true\r\n" +
+                    "-----------------------------9051914041544843365972754266--")
+            }
         })
+        
     }
 //
 //        router.post("/json") { request, response, next in
@@ -521,52 +592,7 @@ class KituraQueryTests: KituraTest {
 //            response.send(body["foo"].string ?? "")
 //        }
 //        
-//        router.post("/multipart") { request, response, next in
-//            defer {
-//                response.status(.OK)
-//                next()
-//            }
-//            
-//            guard let body = request.body else {
-//                XCTFail("body should exist")
-//                return
-//            }
-//            
-//            guard case .multipart(let parts) = body else {
-//                XCTFail("wrong body")
-//                return
-//            }
-//            
-//            guard let parsedBody = (body["text"].object as? Part)?.body,
-//                case .text = parsedBody else {
-//                    XCTFail("wrong part body")
-//                    return
-//            }
-//            
-//            XCTAssertNotNil(body["text"].data)
-//            XCTAssertEqual(body["text"].data, "text default".data(using: .utf8))
-//            XCTAssertNotNil(body["text"].string)
-//            XCTAssertEqual(body["text"].string, "text default")
-//            
-//            guard let text = parts.first,
-//                case .text(let string) = text.body else {
-//                    XCTFail()
-//                    return
-//            }
-//            
-//            XCTAssertEqual(body["text"].string, string)
-//            
-//            XCTAssertEqual(body["number"].int, 10)
-//            XCTAssertEqual(body["number"].double, 10.0)
-//            
-//            XCTAssertEqual(body["boolean"].bool, true)
-//            
-//            XCTAssertNil(body["text"].array)
-//            XCTAssertNil(body["text"].dictionary)
-//            
-//            response.send(body["text"].string ?? "")
-//        }
-//        
+//
 //        
 //        performServerTest(router, asyncTasks: { expectation in
 //            self.performRequest("post", path: "/text", callback: {response in
@@ -611,7 +637,7 @@ class KituraQueryTests: KituraTest {
 //                
 //                XCTAssertNotNil(string)
 //                XCTAssertEqual(string, "text default")
-//                
+//
 //                expectation.fulfill()
 //            }) {req in
 //                req.headers["Content-Type"] = "multipart/form-data; boundary=---------------------------9051914041544843365972754266"
