@@ -15,6 +15,7 @@ extension Container {
     public struct RawBody {
         var data: Data?
         var type: String?
+        var parameters: String?
         
         static let defaultParsers: [Key : RawBodyParserProtocol] = [
             Key(value: "/json", type: .suffix) : JSONParser(),
@@ -32,12 +33,12 @@ extension Container {
                         return Wrap.Value(data)
             }
             
-            return parser.value.parse(raw: data, type: type)
+            return parser.value.parse(raw: data, type: type, parameters: self.parameters)
         }
         
         public func parse(using parser: RawBodyParserProtocol) -> Wrap.Value {
             guard let data = self.data else { return .null }
-            return parser.parse(raw: data, type: self.type)
+            return parser.parse(raw: data, type: self.type, parameters: self.parameters)
         }
     }
 }

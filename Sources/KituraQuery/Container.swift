@@ -36,12 +36,15 @@ public class Container {
             request.headers["Content-Length"] != nil,
             var contentType = request.headers["Content-Type"] else { return nil }
         
+        var parameters: String?
         if let parameterStart = contentType.range(of: ";") {
+            parameters = contentType.substring(from: parameterStart.upperBound)
             contentType = contentType.substring(to: parameterStart.lowerBound)
+            
         }
         
         guard let rawData = try? BodyParser.readBodyData(with: request) else { return nil }
-        let body = Container.RawBody(data: rawData, type: contentType)
+        let body = Container.RawBody(data: rawData, type: contentType, parameters: parameters)
         return body
     }()
     
