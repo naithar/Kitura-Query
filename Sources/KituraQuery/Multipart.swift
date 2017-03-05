@@ -119,15 +119,16 @@ class MultipartParser: RawBodyParserProtocol {
     }
     
     private func content(from partData: Data, range found: Range<Data.Index>, using boundaryData: BoundaryData) -> Data? {
-        let finishLength = boundaryData.headerFinish.count
-        var length = partData.count - (found.lowerBound + finishLength)
+        var length = partData.count - found.upperBound
         
         if partData.hasSuffix(boundaryData.newLine) {
             length -= boundaryData.newLine.count
         }
         
         let contentData = partData
-            .subdata(in: found.lowerBound + finishLength..<found.lowerBound + finishLength + length)
+            .subdata(in: found.upperBound..<(found.upperBound + length))
+        
+        print(String(data: contentData, encoding: .utf8))
         
         guard contentData.count > 0 else { return nil }
         

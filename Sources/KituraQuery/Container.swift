@@ -40,7 +40,6 @@ public class Container {
         if let parameterStart = contentType.range(of: ";") {
             parameters = contentType.substring(from: parameterStart.upperBound)
             contentType = contentType.substring(to: parameterStart.lowerBound)
-            
         }
         
         guard let rawData = try? BodyParser.readBodyData(with: request) else { return nil }

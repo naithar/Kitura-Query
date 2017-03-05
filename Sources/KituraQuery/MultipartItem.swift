@@ -33,7 +33,7 @@ public struct MultipartItem {
         self.updateContent()
     }
     
-    private func updateContent() {
+    private mutating func updateContent() {
         guard let rawBody = self.rawBody else { return }
         self.content = rawBody.parse()
     }
