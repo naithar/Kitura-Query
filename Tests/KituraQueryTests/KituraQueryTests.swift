@@ -500,8 +500,8 @@ class KituraQueryTests: KituraTest {
             
             XCTAssertNotNil(request.wrap.body["text"].as(MultipartItem.self))
             
-            print(request.wrap.body["query"])
-            print(request.wrap.body["query"]["q"])
+            XCTAssertNotNil(request.wrap.body["query"].as(Query.self))
+            XCTAssertEqual(150, request.wrap.body["query"]["q"].int)
 //            guard let text = parts.first,
 //                case .text(let string) = text.body else {
 //                    XCTFail()

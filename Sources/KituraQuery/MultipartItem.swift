@@ -74,7 +74,9 @@ extension MultipartItem: WrapConvertible {
     }
     
     public func `as`<T>(_ type: T.Type) -> T? {
-        return (self as? T) ?? self.content.as(T.self)
+        return (self as? T)
+            ?? (self.content as? T)
+            ?? self.content.as(T.self)
     }
 }
 
@@ -113,6 +115,8 @@ extension MultipartItem: WrapCheckable {
     }
     
     public func `is`<T>(_ type: T.Type) -> Bool {
-        return (self as? T != nil) || self.content.is(T.self)
+        return (self as? T != nil)
+            || (self.content as? T != nil)
+            || self.content.is(T.self)
     }
 }
