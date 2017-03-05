@@ -15,7 +15,7 @@ public struct MultipartItem {
     
     public internal(set) var name: String
     
-    public internal(set) var rawBody: Container.RawBody? {
+    public internal(set) var rawBody: RawBody? {
         didSet {
             self.updateContent()
         }
@@ -27,7 +27,7 @@ public struct MultipartItem {
     
     internal static let empty = MultipartItem.init(name: "")
     
-    init(name: String, rawBody: Container.RawBody? = nil) {
+    init(name: String, rawBody: RawBody? = nil) {
         self.name = name
         self.rawBody = rawBody
         self.updateContent()

@@ -43,7 +43,7 @@ public class Container {
         }
         
         guard let rawData = try? BodyParser.readBodyData(with: request) else { return nil }
-        let body = Container.RawBody(data: rawData, type: contentType, parameters: parameters)
+        let body = RawBody(data: rawData, type: contentType, parameters: parameters)
         return body
     }()
     

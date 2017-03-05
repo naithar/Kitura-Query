@@ -57,6 +57,11 @@ class MultipartParser: RawBodyParserProtocol {
     
     typealias BoundaryData = (boundary: Data, newLine: Data, headerFinish: Data, finish: Data)
     
+    private static var newLine = String.newLine.data(using: .utf8)
+    private static var headerFinish = (String.newLine + String.newLine).data(using: .utf8)
+    private static var finish = String.dashes.data(using: .utf8)
+    
+    
     func parse(raw data: Data, type: String?, parameters: String?) -> Wrap.Value {
         guard let parameters = parameters,
             let boundary = self.boundary(from: parameters),
@@ -99,9 +104,9 @@ class MultipartParser: RawBodyParserProtocol {
     
     func boundaryData(using boundary: String) -> BoundaryData? {
         guard let boundary = (String.dashes + boundary).data(using: .utf8),
-            let newLine = String.newLine.data(using: .utf8),
-            let headerFinish = (String.newLine + String.newLine).data(using: .utf8),
-            let finish = String.dashes.data(using: .utf8) else { return nil }
+            let newLine = MultipartParser.newLine,
+            let headerFinish = MultipartParser.headerFinish,
+            let finish = MultipartParser.finish else { return nil }
         
         return (boundary, newLine, headerFinish, finish)
     }
@@ -113,7 +118,7 @@ class MultipartParser: RawBodyParserProtocol {
         let headerData = partData.subdata(in: 0..<found.lowerBound)
         guard let contentData = self.content(from: partData, range: found, using: boundaryData) else { return nil }
         guard self.process(header: headerData, using: boundaryData, to: &result) else { return nil }
-        result.rawBody = Container.RawBody(data: contentData, type: result.headers["content-type"], parameters: nil)
+        result.rawBody = RawBody(data: contentData, type: result.headers["content-type"], parameters: nil)
         
         return result
     }
@@ -127,8 +132,6 @@ class MultipartParser: RawBodyParserProtocol {
         
         let contentData = partData
             .subdata(in: found.upperBound..<(found.upperBound + length))
-        
-        print(String(data: contentData, encoding: .utf8))
         
         guard contentData.count > 0 else { return nil }
         
