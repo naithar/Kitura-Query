@@ -51,7 +51,7 @@ extension Data {
     }
 }
 
-public struct MultipartData {
+public struct MultipartItem {
     
     public internal(set) var name: String
     
@@ -66,7 +66,7 @@ public struct MultipartData {
     
     public var headers = [String : String]()
     
-    internal static let empty = MultipartData.init(name: "")
+    internal static let empty = MultipartItem.init(name: "")
     
     init(name: String, rawBody: Container.RawBody? = nil) {
         self.name = name
@@ -74,7 +74,7 @@ public struct MultipartData {
     }
 }
 
-extension MultipartData: WrapConvertible {
+extension MultipartItem: WrapConvertible {
     
     public var object: Any {
         return self.content.object
@@ -124,7 +124,7 @@ class MultipartParser: RawBodyParserProtocol {
         
         let parts = data.components(separatedBy: boundaryData.boundary)
         
-        var result = [String : MultipartData]()
+        var result = [String : MultipartItem]()
         var encounteredFinish = false
         
         for part in parts {
@@ -133,7 +133,7 @@ class MultipartParser: RawBodyParserProtocol {
                 break
             }
             
-            if let multipartItem = self.getPart(from: part, using: boundaryData) {
+            if let multipartItem = self.multipartItem(from: part, using: boundaryData) {
                 result[multipartItem.name] = multipartItem
             }
         }
@@ -166,10 +166,10 @@ class MultipartParser: RawBodyParserProtocol {
         return (boundary, newLine, headerFinish, finish)
     }
     
-    private func getPart(from partData: Data, using boundaryData: BoundaryData) -> MultipartData? {
+    private func multipartItem(from partData: Data, using boundaryData: BoundaryData) -> MultipartItem? {
         guard let found = partData.range(of: boundaryData.headerFinish, in: 0..<partData.count) else { return nil }
         
-        var result = MultipartData.empty
+        var result = MultipartItem.empty
         let headerData = partData.subdata(in: 0..<found.lowerBound)
         guard let contentData = self.content(from: partData, range: found, using: boundaryData) else { return nil }
         guard self.process(header: headerData, using: boundaryData, to: &result) else { return nil }
@@ -196,7 +196,7 @@ class MultipartParser: RawBodyParserProtocol {
     
     private func process(header headerData: Data,
                          using boundaryData: BoundaryData,
-                         to multipartItem: inout MultipartData) -> Bool {
+                         to multipartItem: inout MultipartItem) -> Bool {
         let headerLines = headerData.components(separatedBy: boundaryData.newLine)
         
         for line in headerLines {
@@ -207,7 +207,7 @@ class MultipartParser: RawBodyParserProtocol {
         return !multipartItem.name.isEmpty
     }
     
-    private func process(headerLine line: String, to multipartItem: inout MultipartData) {
+    private func process(headerLine line: String, to multipartItem: inout MultipartItem) {
         guard !processDisposition(for: line, to: &multipartItem) else { return }
         
         if let labelRange = line.range(ofLabel: "content-type:") {
@@ -216,10 +216,10 @@ class MultipartParser: RawBodyParserProtocol {
         }
     }
     
-    private func processDisposition(for line: String, to multipartItem: inout MultipartData) -> Bool {
+    private func processDisposition(for line: String, to multipartItem: inout MultipartItem) -> Bool {
         if let dispositionRange = line.range(ofLabel: "content-disposition:") {
             let array = ["name", "filename"]
-            func process(header: String, to multipartItem: inout MultipartData) {
+            func process(header: String, to multipartItem: inout MultipartItem) {
                 if let headerRange = line.range(of: (header + "="),
                                                 options: .caseInsensitive,
                                                 range: dispositionRange.upperBound..<line.endIndex) {
