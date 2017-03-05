@@ -51,67 +51,7 @@ extension Data {
     }
 }
 
-public struct MultipartItem {
-    
-    public internal(set) var name: String
-    
-    public internal(set) var rawBody: Container.RawBody? {
-        didSet {
-            guard let rawBody = self.rawBody else { return }
-            self.content = rawBody.parse()
-        }
-    }
 
-    public private(set) var content: Wrap.Value = .null
-    
-    public var headers = [String : String]()
-    
-    internal static let empty = MultipartItem.init(name: "")
-    
-    init(name: String, rawBody: Container.RawBody? = nil) {
-        self.name = name
-        self.rawBody = rawBody
-    }
-}
-
-extension MultipartItem: WrapConvertible {
-    
-    public var object: Any {
-        return self.content.object
-    }
-    
-    public var data: Data? {
-        return self.content.data
-    }
-    
-    public var bool: Bool? {
-        return self.content.bool
-    }
-    
-    public var int: Int? {
-        return self.content.int
-    }
-    
-    public var double: Double? {
-        return self.content.double
-    }
-    
-    public var string: String? {
-        return self.content.string
-    }
-    
-    public var array: [Any]? {
-        return self.content.array
-    }
-    
-    public var dictionary: [AnyHashable : Any]? {
-        return self.content.dictionary
-    }
-    
-    public func `as`<T>(_ type: T.Type) -> T? {
-        return (self as? T) ?? self.content.as(T.self)
-    }
-}
 
 class MultipartParser: RawBodyParserProtocol {
     

@@ -33,8 +33,8 @@ extension JSON: WrapConvertible {
 
 extension JSON: WrapSubscriptable {
     
-    public subscript(keys: WrapKeyProtocol) -> JSON {
-        guard let key = keys.jsonKey else { return JSON.null }
+    public subscript(key: WrapKeyProtocol) -> JSON {
+        guard let key = key.jsonKey else { return JSON.null }
         return self[key]
     }
 }

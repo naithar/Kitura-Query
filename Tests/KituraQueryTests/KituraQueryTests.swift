@@ -499,6 +499,9 @@ class KituraQueryTests: KituraTest {
             XCTAssertEqual(request.wrap.body["text"].string, "text default")
             
             XCTAssertNotNil(request.wrap.body["text"].as(MultipartItem.self))
+            
+            print(request.wrap.body["query"])
+            print(request.wrap.body["query"]["q"])
 //            guard let text = parts.first,
 //                case .text(let string) = text.body else {
 //                    XCTFail()
@@ -550,6 +553,9 @@ class KituraQueryTests: KituraTest {
                     "-----------------------------9051914041544843365972754266\r\n" +
                     "Content-Disposition: form-data; name=\"number\"\r\n\r\n" +
                     "10\r\n" +
+                    "-----------------------------9051914041544843365972754266\r\n" +
+                    "Content-Disposition: form-data; name=\"query\"\r\nContent-Type: application/x-www-form-urlencoded\r\n\r\n" +
+                    "q=150\r\n" +
                     "-----------------------------9051914041544843365972754266\r\n" +
                     "Content-Disposition: form-data; name=\"boolean\"\r\n\r\n" +
                     "true\r\n" +
