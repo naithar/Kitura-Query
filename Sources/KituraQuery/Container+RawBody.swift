@@ -13,9 +13,9 @@ import Wrap
 extension Container {
     
     public struct RawBody {
-        var data: Data?
-        var type: String?
-        var parameters: String?
+        public private(set) var data: Data?
+        public private(set) var type: String?
+        public private(set) var parameters: String?
         
         static let defaultParsers: [Key : RawBodyParserProtocol] = [
             Key(value: "/json", type: .suffix) : JSONParser(),

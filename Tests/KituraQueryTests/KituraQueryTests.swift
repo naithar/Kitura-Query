@@ -498,6 +498,7 @@ class KituraQueryTests: KituraTest {
             XCTAssertNotNil(request.wrap.body["text"].string)
             XCTAssertEqual(request.wrap.body["text"].string, "text default")
             
+            XCTAssertNotNil(request.wrap.body["text"].as(MultipartData.self))
 //            guard let text = parts.first,
 //                case .text(let string) = text.body else {
 //                    XCTFail()
@@ -544,7 +545,7 @@ class KituraQueryTests: KituraTest {
             }) {req in
                 req.headers["Content-Type"] = "multipart/form-data; boundary=---------------------------9051914041544843365972754266"
                 req.write(from: "-----------------------------9051914041544843365972754266\r\n" +
-                    "Content-Disposition: form-data; name=\"text\"\r\n\r\n" +
+                    "Content-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain\r\n\r\n" +
                     "text default\r\n" +
                     "-----------------------------9051914041544843365972754266\r\n" +
                     "Content-Disposition: form-data; name=\"number\"\r\n\r\n" +

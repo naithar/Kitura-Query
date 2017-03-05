@@ -128,7 +128,6 @@ class MultipartParser: RawBodyParserProtocol {
         var encounteredFinish = false
         
         for part in parts {
-            
             guard !part.hasPrefix(boundaryData.finish) else {
                 encounteredFinish = true
                 break
@@ -170,54 +169,81 @@ class MultipartParser: RawBodyParserProtocol {
     private func getPart(from partData: Data, using boundaryData: BoundaryData) -> MultipartData? {
         guard let found = partData.range(of: boundaryData.headerFinish, in: 0..<partData.count) else { return nil }
         
-        let headerLines = partData
-            .subdata(in: 0..<found.lowerBound)
-            .components(separatedBy: boundaryData.newLine)
-        
         var result = MultipartData.empty
-        var headers = [String : String]()
-        for line in headerLines {
-            guard let header = String.init(data: line, encoding: .utf8) else { break }
-            self.processHeaderLine(header, to: &headers)
-        }
+        let headerData = partData.subdata(in: 0..<found.lowerBound)
+        guard let contentData = self.content(from: partData, range: found, using: boundaryData) else { return nil }
+        guard self.process(header: headerData, using: boundaryData, to: &result) else { return nil }
+        result.rawBody = Container.RawBody(data: contentData, type: result.headers["content-type"], parameters: nil)
         
-        guard let name = headers[".name"] else { return nil }
-        
+        return result
+    }
+    
+    private func content(from partData: Data, range found: Range<Data.Index>, using boundaryData: BoundaryData) -> Data? {
         let finishLength = boundaryData.headerFinish.count
         var length = partData.count - (found.lowerBound + finishLength)
-        // if the part ends with a \r\n, we delete it since it is part of the next boundary
+        
         if partData.hasSuffix(boundaryData.newLine) {
             length -= boundaryData.newLine.count
         }
+        
         let contentData = partData
             .subdata(in: found.lowerBound + finishLength..<found.lowerBound + finishLength + length)
         
         guard contentData.count > 0 else { return nil }
         
-        let body = Container.RawBody(data: contentData, type: headers[".type"], parameters: nil)
-        
-        result.name = name
-        result.rawBody = body
-        
-        return result
+        return contentData
     }
     
-    private func processHeaderLine(_ line: String, to dictionary: inout [String : String]) {
-        if let nameRange = line.range(of: "name=",
-                                      options: .caseInsensitive,
-                                      range: line.startIndex..<line.endIndex) {
-            
-            let valueStartIndex = line.index(after: nameRange.upperBound)
-            let valueEndIndex = line.range(of: "\"", range: valueStartIndex..<line.endIndex)
-            let name = line.substring(with: valueStartIndex..<(valueEndIndex?.lowerBound ?? line.endIndex))
-            
-            dictionary[".name"] = name
+    private func process(header headerData: Data,
+                         using boundaryData: BoundaryData,
+                         to multipartItem: inout MultipartData) -> Bool {
+        let headerLines = headerData.components(separatedBy: boundaryData.newLine)
+        
+        for line in headerLines {
+            guard let line = String.init(data: line, encoding: .utf8) else { break }
+            self.process(headerLine: line, to: &multipartItem)
         }
         
+        return !multipartItem.name.isEmpty
+    }
+    
+    private func process(headerLine line: String, to multipartItem: inout MultipartData) {
+        guard !processDisposition(for: line, to: &multipartItem) else { return }
+        
         if let labelRange = line.range(ofLabel: "content-type:") {
-            //            part.type = line.substring(from: line.index(after: labelRange.upperBound))
-            dictionary[".type"] = line
+            multipartItem.headers["content-type"] = line.substring(from: line.index(after: labelRange.upperBound))
             return
         }
+    }
+    
+    private func processDisposition(for line: String, to multipartItem: inout MultipartData) -> Bool {
+        if let dispositionRange = line.range(ofLabel: "content-disposition:") {
+            let array = ["name", "filename"]
+            func process(header: String, to multipartItem: inout MultipartData) {
+                if let headerRange = line.range(of: (header + "="),
+                                                options: .caseInsensitive,
+                                                range: dispositionRange.upperBound..<line.endIndex) {
+                    
+                    let valueStartIndex = line.index(after: headerRange.upperBound)
+                    let valueEndIndex = line.range(of: "\"",
+                                                   range: valueStartIndex..<line.endIndex)?.lowerBound ?? line.endIndex
+                    let value = line.substring(with: valueStartIndex..<valueEndIndex)
+                    
+                    multipartItem.headers[header] = value
+                }
+            }
+            
+            array.forEach {
+                process(header: $0, to: &multipartItem)
+                if $0 == "name",
+                    let name = multipartItem.headers[$0] {
+                    multipartItem.name = name
+                }
+            }
+            
+            return true
+        }
+        
+        return false
     }
 }
