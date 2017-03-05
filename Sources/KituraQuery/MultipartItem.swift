@@ -17,8 +17,7 @@ public struct MultipartItem {
     
     public internal(set) var rawBody: Container.RawBody? {
         didSet {
-            guard let rawBody = self.rawBody else { return }
-            self.content = rawBody.parse()
+            self.updateContent()
         }
     }
     
@@ -31,6 +30,12 @@ public struct MultipartItem {
     init(name: String, rawBody: Container.RawBody? = nil) {
         self.name = name
         self.rawBody = rawBody
+        self.updateContent()
+    }
+    
+    private func updateContent() {
+        guard let rawBody = self.rawBody else { return }
+        self.content = rawBody.parse()
     }
 }
 
