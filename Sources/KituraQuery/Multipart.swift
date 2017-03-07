@@ -11,6 +11,11 @@ import SwiftyJSON
 import Wrap
 import Query
 
+extension CharacterSet {
+    
+    static let quotes = CharacterSet(charactersIn: "\"")
+}
+
 extension String {
     
     static let dashes = "--"
@@ -148,55 +153,31 @@ class MultipartParser: RawBodyParserProtocol {
             self.process(headerLine: line, to: &multipartItem)
         }
         
+        if let name = multipartItem.headers["name"] {
+            multipartItem.name = name
+        }
+        
         return !multipartItem.name.isEmpty
     }
     
     private func process(headerLine line: String, to multipartItem: inout MultipartItem) {
-        guard !processDisposition(for: line, to: &multipartItem) else { return }
+        let keyValuePairs = line.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespaces) }
         
-        if let labelRange = line.range(ofLabel: "content-type:") {
-            multipartItem.headers["content-type"] = line.substring(from: line.index(after: labelRange.upperBound))
-            return
-        }
-    }
-    
-    private func processDisposition(for line: String, to multipartItem: inout MultipartItem) -> Bool {
-        if let dispositionRange = line.range(ofLabel: "content-disposition:") {
-            let array = ["name", "filename"]
+        for pair in keyValuePairs {
+            let key: String
+            let value: String
             
-            func process(header: String, to multipartItem: inout MultipartItem) {
-                if let headerRange = line.range(of: (header + "="),
-                                                options: .caseInsensitive,
-                                                range: dispositionRange.upperBound..<line.endIndex) {
-                    
-                    let keyStartIndex = headerRange.lowerBound
-                    let keyEndIndex = line.index(before: headerRange.upperBound)
-                    
-                    let valueStartIndex = line.index(after: headerRange.upperBound)
-                    let valueEndIndex = line.range(of: "\"",
-                                                   range: valueStartIndex..<line.endIndex)?.lowerBound ?? line.endIndex
-                    
-                    let key = line.substring(with: keyStartIndex..<keyEndIndex)
-                    let value = line.substring(with: valueStartIndex..<valueEndIndex)
-                    
-                    multipartItem.headers[key] = value
-                    
-                    switch header {
-                    case "name":
-                        multipartItem.name = value
-                    default:
-                        break
-                    }
-                }
+            if let range = pair.range(of: "=") {
+                key = pair.substring(to: range.lowerBound)
+                value = pair.substring(from: range.upperBound).trimmingCharacters(in: .quotes)
+            } else if let range = pair.range(of: ": ") {
+                key = pair.substring(to: range.lowerBound)
+                value = pair.substring(from: range.upperBound)
+            } else {
+                continue
             }
             
-            array.forEach {
-                process(header: $0, to: &multipartItem)
-            }
-            
-            return true
+            multipartItem.headers[key] = value
         }
-        
-        return false
     }
 }
