@@ -23,7 +23,7 @@ public struct MultipartItem {
     
     public private(set) var content: Wrap.Value = .null
     
-    public var headers = [String : String]()
+    public var headers = Headers()
     
     internal static let empty = MultipartItem.init(name: "")
     

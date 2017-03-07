@@ -163,26 +163,35 @@ class MultipartParser: RawBodyParserProtocol {
     private func processDisposition(for line: String, to multipartItem: inout MultipartItem) -> Bool {
         if let dispositionRange = line.range(ofLabel: "content-disposition:") {
             let array = ["name", "filename"]
+            
             func process(header: String, to multipartItem: inout MultipartItem) {
                 if let headerRange = line.range(of: (header + "="),
                                                 options: .caseInsensitive,
                                                 range: dispositionRange.upperBound..<line.endIndex) {
                     
+                    let keyStartIndex = headerRange.lowerBound
+                    let keyEndIndex = line.index(before: headerRange.upperBound)
+                    
                     let valueStartIndex = line.index(after: headerRange.upperBound)
                     let valueEndIndex = line.range(of: "\"",
                                                    range: valueStartIndex..<line.endIndex)?.lowerBound ?? line.endIndex
+                    
+                    let key = line.substring(with: keyStartIndex..<keyEndIndex)
                     let value = line.substring(with: valueStartIndex..<valueEndIndex)
                     
-                    multipartItem.headers[header] = value
+                    multipartItem.headers[key] = value
+                    
+                    switch header {
+                    case "name":
+                        multipartItem.name = value
+                    default:
+                        break
+                    }
                 }
             }
             
             array.forEach {
                 process(header: $0, to: &multipartItem)
-                if $0 == "name",
-                    let name = multipartItem.headers[$0] {
-                    multipartItem.name = name
-                }
             }
             
             return true
