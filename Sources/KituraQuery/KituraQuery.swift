@@ -1,6 +1,6 @@
 import SwiftyJSON
 import Kitura
-@_exported import Foundation.NSData
+@_exported import Foundation
 @_exported import Query
 
 enum Keys: String {
