@@ -1,5 +1,5 @@
 import XCTest
-@testable import KituraQuery
+@testable import KituraWrap
 import KituraNet
 import Kitura
 import SwiftyJSON
@@ -103,7 +103,7 @@ class KituraTest: XCTestCase {
     }
 }
 
-class KituraQueryTests: KituraTest {
+class KituraWrapTests: KituraTest {
     
     func testParameterValueJSON() {
         
@@ -664,7 +664,7 @@ class KituraQueryTests: KituraTest {
 //    }
 
 
-    static var allTests : [(String, (KituraQueryTests) -> () throws -> Void)] {
+    static var allTests : [(String, (KituraWrapTests) -> () throws -> Void)] {
         return [
             ("testParameterValueJSON", testParameterValueJSON),
             ("testQueryInRequest", testQueryInRequest),
