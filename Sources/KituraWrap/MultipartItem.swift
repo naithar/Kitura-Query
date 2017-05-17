@@ -57,6 +57,10 @@ extension MultipartItem: WrapConvertible {
         return self.content.int
     }
     
+    public var uInt: UInt? {
+        return self.content.uInt
+    }
+    
     public var double: Double? {
         return self.content.double
     }
@@ -92,6 +96,10 @@ extension MultipartItem: WrapCheckable {
 
     public var isInt: Bool {
         return self.content.isInt
+    }
+    
+    public var isUInt: Bool {
+        return self.content.isUInt
     }
     
     public var isDouble: Bool {

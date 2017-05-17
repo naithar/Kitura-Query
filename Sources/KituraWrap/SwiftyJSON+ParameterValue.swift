@@ -63,6 +63,15 @@ extension JSON: WrapCheckable {
         }
     }
     
+    public var isUInt: Bool {
+        switch self.type {
+        case .number:
+            return true
+        default:
+            return false
+        }
+    }
+    
     public var isDouble: Bool {
         switch self.type {
         case .number:
