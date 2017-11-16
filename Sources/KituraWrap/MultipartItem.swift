@@ -21,7 +21,7 @@ public struct MultipartItem {
         }
     }
     
-    public private(set) var content: Wrap.Value = .null
+    public private(set) var content: Wrap = .null
     
     public var headers = Headers()
     

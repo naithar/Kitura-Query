@@ -22,19 +22,19 @@ public struct RawBody {
         Key(value: "multipart/form-data", type: .prefix) : MultipartParser(),
         ]
     
-    public func parse() -> Wrap.Value {
+    public func parse() -> Wrap {
         guard let data = self.data else { return .null }
         guard let type = self.type,
             let parser = RawBody
                 .defaultParsers
                 .first(where: { $0.0.check(for: type) }) else {
-                    return Wrap.Value(data)
+                    return Wrap(data)
         }
         
         return parser.value.parse(raw: data, type: type, parameters: self.parameters)
     }
     
-    public func parse(using parser: RawBodyParserProtocol) -> Wrap.Value {
+    public func parse(using parser: RawBodyParserProtocol) -> Wrap {
         guard let data = self.data else { return .null }
         return parser.parse(raw: data, type: self.type, parameters: self.parameters)
     }

@@ -19,9 +19,9 @@ public class Container {
         self.request = request
     }
     
-    public var parameters: Wrap.Value {
+    public var parameters: Wrap {
         guard let request = self.request else { return .null }
-        return Wrap.Value.init(request.parameters)
+        return Wrap.init(request.parameters)
     }
     
     public private(set) lazy var query: Query = { [unowned self] in
@@ -47,7 +47,7 @@ public class Container {
         return body
     }()
     
-    public private(set) lazy var body: Wrap.Value = { [unowned self] in
+    public private(set) lazy var body: Wrap = { [unowned self] in
         guard self.request != nil,
             let raw = self.rawBody else { return .null }
         
