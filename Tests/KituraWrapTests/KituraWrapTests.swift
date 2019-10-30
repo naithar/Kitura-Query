@@ -108,7 +108,7 @@ class KituraWrapTests: KituraTest {
     func testParameterValueJSON() {
         
         let json = JSON(["a", "b"])
-        let wrap = Wrap(json)
+        let wrap = Wrap.Value(json)
         
         XCTAssertEqual(wrap.array as! [String], ["a", "b"])
         XCTAssertNil(wrap.dictionary)

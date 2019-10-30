@@ -67,7 +67,7 @@ class MultipartParser: RawBodyParserProtocol {
     private static var finish = String.dashes.data(using: .utf8)
     
     
-    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap {
+    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap.Value {
         guard let parameters = parameters,
             let boundary = self.boundary(from: parameters),
             let boundaryData = self.boundaryData(using: boundary) else { return .null }
@@ -90,7 +90,7 @@ class MultipartParser: RawBodyParserProtocol {
         
         guard encounteredFinish else { return .null }
         
-        return Wrap(result)
+        return Wrap.Value(result)
     }
     
     func boundary(from type: String) -> String? {

@@ -13,29 +13,29 @@ import Query
 
 public protocol RawBodyParserProtocol {
     
-    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap
+    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap.Value
 }
 
 class JSONParser: RawBodyParserProtocol {
     
-    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap {
+    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap.Value {
         let json = JSON(data: data)
         if case .null = json.type { return .null }
-        return Wrap(json)
+        return Wrap.Value(json)
     }
 }
 
 class TextParser: RawBodyParserProtocol {
     
-    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap {
+    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap.Value {
         guard let string = String(data: data, encoding: .utf8) else { return .null }
-        return Wrap(string)
+        return Wrap.Value(string)
     }
 }
 
 class QueryParser: RawBodyParserProtocol {
     
-    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap {
+    func parse(raw data: Data, type: String?, parameters: String?) -> Wrap.Value {
         guard let query = String(data: data, encoding: .utf8) else { return .null }
         return Query.init(percentEncodedQuery: query)
     }
