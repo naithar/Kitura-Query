@@ -138,8 +138,6 @@ class MultipartParser: RawBodyParserProtocol {
         let contentData = partData
             .subdata(in: found.upperBound..<(found.upperBound + length))
         
-        guard contentData.count > 0 else { return nil }
-        
         return contentData
     }
     
